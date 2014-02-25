@@ -15,14 +15,25 @@
 #define MOVING_TO_NEXT_TILE            3
 #define FOCUS_LENSE              4
 
-#define UX1_PIN                  0
-#define UX2_PIN                  1
-#define UY1_PIN                  2
-#define UY2_PIN                  3
+#define ENCODER_X_PIN_A          12   
+#define ENCODER_X_PIN_B          11
+#define ENCODER_Y_PIN_A          10
+#define ENCODER_Y_PIN_B          8
+
+#define LIMIT_SWITCH_X1_PIN                  0
+#define LIMIT_SWITCH_X2_PIN                  1
+#define LIMIT_SWITCH_Y1_PIN                  2
+#define LIMIT_SWITCH_Y2_PIN                  3
 
 /*STATUS CODES*/
 #define SUCCESS                  300
 #define FAILED                   505
+
+int encoder_x_position      = 0;
+int encoder_y_position      = 0;
+int encoder_x_pin_A_last    = LOW;
+int encoder_y_pin_A_last    = LOW;
+int nX = 0, nY = 0;
 
 int horizontal_block_length = 0;
 int vertical_block_length   = 0;
@@ -41,12 +52,42 @@ int mode =-1,command=-1,opt1=-1,opt2=-1,opt3=-1;
 int uX1value = 0, uX2value = 0, uY1value = 0, uY2value = 0;
 
 void setup() {
+   pinMode (ENCODER_X_PIN_A,INPUT);
+   pinMode (ENCODER_X_PIN_B,INPUT);
+   pinMode (ENCODER_Y_PIN_A,INPUT);
+   pinMode (ENCODER_Y_PIN_B,INPUT);
    Serial.begin(9600);
 }
 
 void loop()
 {
- while (Serial.available() > 0) {
+  /***Update X encoder readings***/
+   nX = digitalRead(ENCODER_X_PIN_A);
+   if ((encoder_x_pin_A_last == LOW) && (nX == HIGH)) {
+     if (digitalRead(ENCODER_X_PIN_B) == LOW) {
+       encoder_x_position--;
+     } else {
+       encoder_x_position++;
+     }
+     Serial.println(encoder_x_position);
+   } 
+   encoder_x_pin_A_last = nX;  
+  
+  /***Update Y encoder readings***/
+  nY = digitalRead(ENCODER_Y_PIN_A);
+   if ((encoder_y_pin_A_last == LOW) && (nY == HIGH)) {
+     if (digitalRead(ENCODER_Y_PIN_B) == LOW) {
+       encoder_y_position--;
+     } else {
+       encoder_y_position++;
+     }
+     Serial.println(encoder_y_position);
+   } 
+   encoder_y_pin_A_last = nY;
+   
+ /******Finish encoder reading*******/
+  
+ if (Serial.available() > 0) {
    mode    = Serial.parseInt();
    command = Serial.parseInt(); 
    opt1    = Serial.parseInt(); 
@@ -57,8 +98,7 @@ void loop()
      Serial.print(mode, DEC);
      Serial.print(command, DEC);
      Serial.println(opt1, DEC);
-     break;
-   }  
+   }
  }
  
  switch (mode)
@@ -175,12 +215,12 @@ void stopMotors(){
   }
 }
 
-void writeStatusToREEPROM()
+void writeStatusToEEPROM()
 {
     EEPROM.write(addr, current_tile_position);
 }
 
-int uSensorValue(int x){
-  return analogRead(x);
+int readLimitSwitch(int encoderpin){
+  return digitalRead(encoderpin);
 }
 
