@@ -13,6 +13,7 @@
 #define encoder0PinB  4
 
 //interrupt  pins 2 > X, 3 > y
+//20,21 :: 18,19 limit switch 
 
 volatile unsigned int encoder0Pos = 0;
 

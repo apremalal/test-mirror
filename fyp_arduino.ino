@@ -20,10 +20,10 @@
 #define ENCODER_Y_PIN_A          10
 #define ENCODER_Y_PIN_B          8
 
-#define LIMIT_SWITCH_X1_PIN                  0
-#define LIMIT_SWITCH_X2_PIN                  1
-#define LIMIT_SWITCH_Y1_PIN                  2
-#define LIMIT_SWITCH_Y2_PIN                  3
+#define LIMIT_SWITCH_X1_PIN                  20 //int.3
+#define LIMIT_SWITCH_X2_PIN                  21 //int.2
+#define LIMIT_SWITCH_Y1_PIN                  18 //int.5
+#define LIMIT_SWITCH_Y2_PIN                  19 //int.4
 
 /*STATUS CODES*/
 #define SUCCESS                  300
@@ -51,11 +51,23 @@ int motorPin[]={8,9,10,11,44,45,46,47}; // x,y stepper pins
 int mode =-1,command=-1,opt1=-1,opt2=-1,opt3=-1;
 int uX1value = 0, uX2value = 0, uY1value = 0, uY2value = 0;
 
+volatile int reachedX1 = LOW, reachedX2 = LOW, reachedY1 = LOW, reachedY2 = LOW;
+
 void setup() {
    pinMode (ENCODER_X_PIN_A,INPUT);
+   digitalWrite(ENCODER_X_PIN_A, HIGH); 
    pinMode (ENCODER_X_PIN_B,INPUT);
+   digitalWrite(ENCODER_X_PIN_B, HIGH); 
    pinMode (ENCODER_Y_PIN_A,INPUT);
-   pinMode (ENCODER_Y_PIN_B,INPUT);
+   digitalWrite(ENCODER_Y_PIN_A, HIGH); 
+   pinMode (ENCODER_Y_PIN_B,INPUT);  
+   digitalWrite(ENCODER_Y_PIN_B, HIGH);  
+   
+   attachInterrupt(2, stopX2, CHANGE);
+   attachInterrupt(3, stopX1, CHANGE);
+   attachInterrupt(4, stopY2, CHANGE);
+   attachInterrupt(5, stopY1, CHANGE);
+   
    Serial.begin(9600);
 }
 
@@ -223,4 +235,22 @@ void writeStatusToEEPROM()
 int readLimitSwitch(int encoderpin){
   return digitalRead(encoderpin);
 }
+
+void stopX1()
+{
+  reachedX1 = !reachedX1;
+}
+
+void stopX2(){
+    reachedX2 = !reachedX2;
+}
+
+void stopY1(){
+    reachedY1 = !reachedY1;
+}
+
+void stopY2(){
+  reachedY2 = !reachedY2;
+}
+
 
