@@ -6,10 +6,11 @@
 volatile int reachedX1 = LOW, reachedX2 = LOW, reachedY1 = LOW, reachedY2 = LOW;
 
 void setup() {
-   attachInterrupt(2, stopX2, CHANGE);
+   pinMode(13, OUTPUT);
+   attachInterrupt(2, stopX2, CHANGE );
    attachInterrupt(3, stopX1, CHANGE);
-   attachInterrupt(4, stopY2, CHANGE);
-   attachInterrupt(5, stopY1, CHANGE);   
+   attachInterrupt(4, stopY2, RISING );
+   attachInterrupt(5, stopY1, RISING );   
    Serial.begin(9600);
 }
 
@@ -26,15 +27,15 @@ void stopX1()
 
 void stopX2(){
     reachedX2 = !reachedX2;
-      Serial.println("X2 changed");
+   Serial.println("X2 changed");
 }
 
 void stopY1(){
     reachedY1 = !reachedY1;
-      Serial.println("Y1 changed");
+  Serial.println("Y1 changed");
 }
 
 void stopY2(){
   reachedY2 = !reachedY2;
-    Serial.println("Y2 changed");
+   Serial.println("Y2 changed");
 }

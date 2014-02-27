@@ -9,11 +9,11 @@
 
 */ 
 
-#define encoder0PinA  2
-#define encoder0PinB  4
+#define encoder0PinA  3
+#define encoder0PinB  41
 
 //interrupt  pins 2 > X, 3 > y
-//20,21 :: 18,19 limit switch 
+//X1: 20, 21 :: 18,19 limit switch 
 
 volatile unsigned int encoder0Pos = 0;
 
@@ -25,7 +25,7 @@ void setup() {
   pinMode(encoder0PinB, INPUT); 
   digitalWrite(encoder0PinB, HIGH);       // turn on pullup resistor
 
-  attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
+  attachInterrupt(1, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
   Serial.begin (9600);
   Serial.println("start");                // a personal quirk
 
@@ -47,8 +47,7 @@ void doEncoder() {
   } else {
     encoder0Pos--;
   }
-
-  Serial.println(encoder0Pos, DEC);
+  Serial.println(encoder0Pos);
 }
 
 /* See this expanded function to get a better understanding of the
