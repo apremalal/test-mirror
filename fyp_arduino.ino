@@ -20,18 +20,18 @@
 #define MOTOR_X_PIN_1            22
 #define MOTOR_X_PIN_2            23
 #define MOTOR_X_PWM_PIN          8
-#define MOTOR_Y_PWM_PIN          9
 
-#define MOTOR_X_PWM              90
-#define MOTOR_Y_PWM              150
+#define MOTOR_X_PWM              255
+#define MOTOR_Y_PWM              255
 
 #define MOTOR_Y_PIN_1            24
 #define MOTOR_Y_PIN_2            25
+#define MOTOR_Y_PWM_PIN          9
 
-#define ENCODER_X_PIN_A          2   
-#define ENCODER_X_PIN_B          40
-#define ENCODER_Y_PIN_A          3
-#define ENCODER_Y_PIN_B          41
+#define ENCODER_X_PIN_A          3  
+#define ENCODER_X_PIN_B          41
+#define ENCODER_Y_PIN_A          2
+#define ENCODER_Y_PIN_B          40
 
 #define LIMIT_SWITCH_X1_PIN      20 //int.3
 #define LIMIT_SWITCH_X2_PIN      21 //int.2
@@ -69,6 +69,8 @@ int mode =-1,command=-1,opt1=-1,opt2=-1,opt3=-1;
 int inByte  = -1;
 volatile int reachedX1 = 0, reachedX2 = 0, reachedY1 = 0, reachedY2 = 0;
 
+int initBlockX = 0;
+  
 int block_2_x1 = 182,block_3_x1 = 364;
 
 int limit_x1 = 1, limit_y1 = 0;
@@ -99,17 +101,17 @@ void setup() {
    pinMode (ENCODER_X_PIN_B,INPUT);
    digitalWrite(ENCODER_X_PIN_B, HIGH); 
 
-   attachInterrupt(0, doEncoderX, CHANGE); // x encoder
+   attachInterrupt(1, doEncoderX, CHANGE); // x encoder
    
    pinMode (ENCODER_Y_PIN_A,INPUT);
    digitalWrite(ENCODER_Y_PIN_A, HIGH); 
    pinMode (ENCODER_Y_PIN_B,INPUT);  
    digitalWrite(ENCODER_Y_PIN_B, HIGH);  
    
-   attachInterrupt(1, doEncoderY, CHANGE); // y encoder
+   attachInterrupt(0, doEncoderY, CHANGE); // y encoder
    
-   //Serial.print("X min:"); Serial.println(encoder_x_position);
-   //Serial.print("Y min:"); Serial.println(encoder_y_position);
+   Serial.print("X min:"); Serial.println(encoder_x_position);
+   Serial.print("Y min:"); Serial.println(encoder_y_position);
            
    moveMotor(MOTOR_X,DIRECTION_PLUS);
    moveMotor(MOTOR_Y,DIRECTION_PLUS);
@@ -125,8 +127,8 @@ void setup() {
    stopMotors(MOTOR_X_Y);
    encoder_x_max = encoder_x_position; encoder_y_max = encoder_y_position;
    limit_x2 = 1; limit_y2 = 0; 
-   //Serial.print("X max:"); Serial.println(encoder_x_position);
-   //Serial.print("Y max:"); Serial.println(encoder_y_position);
+   Serial.print("X max:"); Serial.println(encoder_x_position);
+   Serial.print("Y max:"); Serial.println(encoder_y_position);
    
    moveMotor(MOTOR_X,DIRECTION_MINUS);
    moveMotor(MOTOR_Y,DIRECTION_MINUS);
@@ -146,88 +148,30 @@ void setup() {
    attachInterrupt(3, stopX1, CHANGE);
    attachInterrupt(4, stopY2, RISING);
    attachInterrupt(5, stopY1, RISING);
+   encoder_x_position = 0;
+   encoder_y_position = 0;
 }
 
 void loop()
-{
-  
-  /*if (Serial.available()){
-    inByte = Serial.read();
-    Serial.println(inByte);  
-    if(inByte==49){
-      Serial.println("x_plus");
-      moveMotor(MOTOR_X,DIRECTION_PLUS);
-    }
-    else if(inByte==50){
-       Serial.println("x_minus");
-      moveMotor(MOTOR_X,DIRECTION_MINUS);
-    }
-    else if(inByte==51){
-          Serial.println("y_plus");
-      moveMotor(MOTOR_Y,DIRECTION_PLUS);
-    }
-    else if(inByte==52){
-          Serial.println("y_minus");
-      moveMotor(MOTOR_Y,DIRECTION_MINUS);
-    }
-    else
-    {
-      stopMotors(MOTOR_X_Y);
-    }
-  }*/
-  int initBlockX = 0;
-  
-  if (Serial.available() > 0) {
+{ 
+
+  int sequenceNo = 0;
+  while(Serial.available() > 0) {
+   sequenceNo  = Serial.parseInt();
    mode    = Serial.parseInt();
    command = Serial.parseInt(); 
    opt1    = Serial.parseInt();  // scanning block
    opt2    = Serial.parseInt(); 
    opt3    = Serial.parseInt();
-   
    initBlockX = getInitBlockX(opt1);
-   /*if (Serial.read() == '\n') {
-     Serial.print(mode, DEC);
-     Serial.print(command, DEC);
-     Serial.println(opt1, DEC);
-   }*/
  }
+ 
+ if(digitalRead(LIMIT_SWITCH_X2_PIN)==0)
+  stopMotors(MOTOR_X);
  
  switch (mode)
  {
-   case MANUAL_MODE:
-        switch(command){
-           case STOP:
-             stopMotors(0);
-             break;
-           case IMERGENCY_STOP:
-             stopMotors(0);
-             break;
-           case MOVE_TO_INITIAL_POSITION:          
-             if(reachedX1)
-               stopMotors(MOTOR_X);
-             else
-               moveMotor(MOTOR_X,DIRECTION_MINUS);
-               
-             if(reachedY1)
-               stopMotors(MOTOR_Y);
-             else
-               moveMotor(MOTOR_Y,DIRECTION_MINUS);
-               
-             if(reachedX1 && reachedY1)
-             {
-               encoder_x_position = 0;
-               encoder_x_position = 0;
-               operation_status = SUCCESS;
-               command = MOVING_TO_NEXT_TILE;
-             }
-             break;
-           case MOVING_TO_NEXT_TILE:
-               moveMotorSteps(motor,_direction,steps);
-             break;
-           case FOCUS_LENSE:
-               doFocus(_direction,steps);
-             break;   
-        }
+   case MANUAL_MODE:        
      break;
    case AUTOMATIC_MODE:
      switch(command){
@@ -259,14 +203,14 @@ void loop()
        case MOVING_TO_NEXT_TILE:
            moveMotorSteps(opt1,opt2,opt3);
          break;
-	   case PENDING:
+      case PENDING:
 	     break;
        case FOCUS_LENSE:
            doFocus(_direction,steps);
          break;    
      }
-     sendResponce();
-     operation_status = FAILED;
+    // sendResponce();
+    // operation_status = FAILED;
      break;   
  }
 }
@@ -293,23 +237,23 @@ void moveMotorSteps(int motor,int _direction,int steps)
 {
  int current_x_position  = encoder_x_position;
  int current_y_position  = encoder_y_position;
- 
   switch (motor){
     case MOTOR_X:     
-	  moveMotor(MOTOR_X,_direction);
-	  while(abs(current_x_position-encoder_x_position)>= steps)
+	  moveMotor(MOTOR_X,_direction); 
+	  while(abs(current_x_position+steps - encoder_x_position)> 0)
 	  { ; }
 	  operation_status = SUCCESS;
       stopMotors(MOTOR_X);
       break;
     case MOTOR_Y:
       moveMotor(MOTOR_Y,_direction);
-	  while(abs(current_y_position-encoder_y_position)>= steps)
+	  while(abs(current_y_position+steps-encoder_y_position)> 0)
 	  { ; }
 	  operation_status = SUCCESS;
       stopMotors(MOTOR_Y);
       break;
   } 
+  sendResponce();
 }
 
 void moveMotor(int motor,int _direction)
@@ -344,9 +288,12 @@ void moveMotor(int motor,int _direction)
 
 void sendResponce()
 {
-  responce = sequence_no + ":"; 
-  responce += operation_status+":";
-  responce += command+":";
+  responce = "";
+  responce.concat(sequence_no);
+  responce.concat(":"); 
+  responce.concat(operation_status);
+  responce.concat(":"); 
+  responce.concat(command);
   Serial.println(responce);
   command = PENDING;
   operation_status = FAILED;
