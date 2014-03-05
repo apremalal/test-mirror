@@ -12,7 +12,7 @@
 #define DIRECTION_MINUS          51
 
 #define STOP                     0
-#define IMERGENCY_STOP           1
+#define EMERGENCY_STOP           1
 #define MOVE_TO_INITIAL_POSITION 2
 #define MOVING_TO_NEXT_TILE      3
 #define FOCUS_LENSE              4
@@ -171,14 +171,15 @@ void loop()
  
  switch (mode)
  {
-   case MANUAL_MODE:        
+   case MANUAL_MODE:   
+   
      break;
    case AUTOMATIC_MODE:
      switch(command){
        case STOP:
          stopMotors(0);
          break;
-       case IMERGENCY_STOP:
+       case EMERGENCY_STOP:
          stopMotors(0);
          break;
        case MOVE_TO_INITIAL_POSITION:
